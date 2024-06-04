@@ -78,7 +78,7 @@ def display_filter_responses(weights, samplerate):
     plt.xlabel('Frequency [Hz]')
     plt.ylabel('Amplitude [dB]')
     plt.grid(True, which='both', axis='both')
-
+    plt.ylim(bottom=-96, top=0)  # Setting y-axis limits from -96 dB to 0 dB
     # Formatting frequency labels to display in decimal format
     formatter = FuncFormatter(lambda x, _: f'{x:.0f}')
     plt.gca().xaxis.set_major_formatter(formatter)
@@ -94,6 +94,7 @@ def display_filter_responses(weights, samplerate):
 
     plt.tight_layout()
     plt.show()
+    
 def generate_filter_coefficients(length, fc):
     """Generate filter coefficients for the given length and fc."""
     if length % 2 == 0:
