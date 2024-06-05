@@ -15,37 +15,45 @@ def asinh(x):
     """Compute the inverse hyperbolic sine of x."""
     return math.log(x + math.sqrt(x * x + 1))
 
-def normalh(x, scale, fc=8):
+def normalh(x, length, a, b, c):
     """Compute the normalized hyperbolic weight."""
-    scale_factor = scale / fc
-    n = x / scale_factor
+    n = c / b
     if x != 0:
-        return asinh(n) * csch(n)
+        return asinh(x / (length / a * b)) * csch(x / (length / a * c)) / n
     else:
         return 1  # The center coefficient
 
-def normh_ma(source, length, fc):
+def generate_filter_coefficients(length, a, b, c):
+    """Generate filter coefficients for the given length and fc."""
+    if length % 2 == 0:
+        raise ValueError("Length must be odd.")
+    mid = length // 2
+    weights = np.array([normalh(i - mid, length / 2, a, b, c) for i in range(length)])
+    sum_weights = np.sum(weights)
+    return weights / sum_weights
+
+def normh_ma(source, length, a, b, c):
     """Apply a normalized hyperbolic moving average filter."""
     if length % 2 == 0:
         raise ValueError("Length must be odd.")
     
     mid = length // 2
-    weights = np.array([normalh(i - mid, length, fc) for i in range(length)])
+    weights = np.array([normalh(i - mid, length / 2, a, b, c) for i in range(length)])
     sum_weights = np.sum(weights)
     filtered = np.convolve(source, weights/sum_weights, mode='same')
     return filtered
 
-def process_audio_file(input_file, output_file, filter_length, fc):
+def process_audio_file(input_file, output_file, filter_length, a, b, c):
     """Read an audio file, apply the filter, and write the output to a new file."""
     data, samplerate = sf.read(input_file)
     if data.ndim > 1:
         filtered_channels = []
         for channel in range(data.shape[1]):
-            filtered_channel = normh_ma(data[:, channel], filter_length, fc)
+            filtered_channel = normh_ma(data[:, channel], filter_length, a, b, c)
             filtered_channels.append(filtered_channel)
         filtered_data = np.column_stack(filtered_channels)
     else:
-        filtered_data = normh_ma(data, filter_length, fc)
+        filtered_data = normh_ma(data, filter_length, a, b, c)
     
     sf.write(output_file, filtered_data, samplerate)
 
@@ -94,15 +102,6 @@ def display_filter_responses(weights, samplerate):
 
     plt.tight_layout()
     plt.show()
-    
-def generate_filter_coefficients(length, fc):
-    """Generate filter coefficients for the given length and fc."""
-    if length % 2 == 0:
-        raise ValueError("Length must be odd.")
-    mid = length // 2
-    weights = np.array([normalh(i - mid, length, fc) for i in range(length)])
-    sum_weights = np.sum(weights)
-    return weights / sum_weights
 
 def main():
     root = tk.Tk()
@@ -114,8 +113,10 @@ def main():
             while True:
                 _filter_length = askinteger("Input", "Enter FIR length:")
                 filter_length = _filter_length * 2 + 1
-                fc = askfloat("Input", "Enter fc value:")
-                weights = generate_filter_coefficients(filter_length, fc)
+                a = askfloat("Input", "Enter a value:")
+                b = askfloat("Input", "Enter b value:")
+                c = askfloat("Input", "Enter c value:")
+                weights = generate_filter_coefficients(filter_length, a, b, c)
                 samplerate = sf.info(input_file).samplerate
                 display_filter_responses(weights, samplerate)
                 
@@ -124,7 +125,7 @@ def main():
                                                                defaultextension=".wav",
                                                                filetypes=(("WAV files", "*.wav"), ("All files", "*.*")))
                     if output_file:
-                        process_audio_file(input_file, output_file, filter_length, fc)
+                        process_audio_file(input_file, output_file, filter_length, a, b, c)
                         tk.messagebox.showinfo("Success", "The audio has been processed successfully.")
                     break 
 
