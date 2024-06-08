@@ -17,9 +17,9 @@ def asinh(x):
 
 def normalh(x, length, a, b, c):
     """Compute the normalized hyperbolic weight."""
-    n = c / b
+    n = b * c
     if x != 0:
-        return asinh(x / (length / a * b)) * csch(x / (length / a * c)) / n
+        return asinh(x / (length / a * (1/b))) * csch(x / (length / a * c)) / n
     else:
         return 1  # The center coefficient
 
@@ -36,8 +36,6 @@ def generate_filter_coefficients(length, a, b, c, window_type=None):
     if window_type != "none":
         if window_type == 'hamming':
             window = np.hamming(length)
-        elif window_type == 'hann':
-            window = np.hann(length)
         elif window_type == 'blackman':
             window = np.blackman(length)
         elif window_type == 'kaiser':
@@ -121,7 +119,7 @@ def main():
     root.title("Hyperbolic LPF")
     window_type = tk.StringVar(root)
     window_type.set("none")  # default value
-    window_options = ["none", "hamming", "hann", "blackman", "kaiser"]
+    window_options = ["none", "hamming", "blackman", "kaiser"]
     window_dropdown = tk.OptionMenu(root, window_type, *window_options)
     window_dropdown.pack()
 
