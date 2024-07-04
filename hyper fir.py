@@ -7,28 +7,21 @@ from tkinter.simpledialog import askinteger, askfloat
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
-def csch(x):
-    """Compute the hyperbolic cosecant of x."""
-    return 2 / (math.exp(x) - math.exp(-x))
 
-def asinh(x):
-    """Compute the inverse hyperbolic sine of x."""
-    return math.log(x + math.sqrt(x * x + 1))
-#init new version
-def normalh(x, length, a, b, c):
+def normalh(x, length, b, c):
     """Compute the normalized hyperbolic weight."""
     n = b * c
     if x != 0:
-        return asinh(x / (length / a * (1/b))) * csch(x / (length / a * c)) / n
+        return math.asinh((2 * b * x) / length) * math.csch((2 * x) / (length * c)) / n
     else:
         return 1  # The center coefficient
 
-def generate_filter_coefficients(length, a, b, c, window_type=None):
+def generate_filter_coefficients(length, b, c, window_type=None):
     """Generate filter coefficients for the given length and parameters, optionally applying a window function."""
     if length % 2 == 0:
         raise ValueError("Length must be odd.")
     mid = length // 2
-    weights = np.array([normalh(i - mid, length / 2, a, b, c) for i in range(length)])
+    weights = np.array([normalh(i - mid, length, b, c) for i in range(length)])
     sum_weights = np.sum(weights)
     normalized_weights = weights / sum_weights
 
@@ -48,29 +41,29 @@ def generate_filter_coefficients(length, a, b, c, window_type=None):
 
     return normalized_weights
 
-def normh_ma(source, length, a, b, c, window_type=None):
+def normh_ma(source, length, b, c, window_type=None):
     """Apply a normalized hyperbolic moving average filter using generated coefficients."""
     if length % 2 == 0:
         raise ValueError("Length must be odd.")
     
     # Use the generate_filter_coefficients function to get the weights
-    weights = generate_filter_coefficients(length, a, b, c, window_type)
+    weights = generate_filter_coefficients(length, b, c, window_type)
     
     # Apply the convolution with the normalized weights
     filtered = np.convolve(source, weights, mode='same')
     return filtered
 
-def process_audio_file(input_file, output_file, filter_length, a, b, c, window_type=None):
+def process_audio_file(input_file, output_file, filter_length, b, c, window_type=None):
     """Read an audio file, apply the filter, and write the output to a new file."""
     data, samplerate = sf.read(input_file)
     if data.ndim > 1:
         filtered_channels = []
         for channel in range(data.shape[1]):
-            filtered_channel = normh_ma(data[:, channel], filter_length, a, b, c, window_type)
+            filtered_channel = normh_ma(data[:, channel], filter_length, b, c, window_type)
             filtered_channels.append(filtered_channel)
         filtered_data = np.column_stack(filtered_channels)
     else:
-        filtered_data = normh_ma(data, filter_length, a, b, c, window_type)
+        filtered_data = normh_ma(data, filter_length, b, c, window_type)
     
     sf.write(output_file, filtered_data, samplerate)
 
@@ -132,16 +125,13 @@ def main():
                 if _filter_length is None:
                     break
                 filter_length = _filter_length * 2 + 1
-                a = askfloat("Input", "Enter a value:")
-                if a is None:
-                    break
                 b = askfloat("Input", "Enter b value:")
                 if b is None:
                     break
                 c = askfloat("Input", "Enter c value:")
                 if c is None:
                     break
-                weights = generate_filter_coefficients(filter_length, a, b, c, window_type.get())
+                weights = generate_filter_coefficients(filter_length, b, c, window_type.get())
                 samplerate = sf.info(input_file).samplerate
                 display_filter_responses(weights, samplerate)
 
