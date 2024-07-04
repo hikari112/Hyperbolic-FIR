@@ -14,7 +14,7 @@ def csch(x):
 def asinh(x):
     """Compute the inverse hyperbolic sine of x."""
     return math.log(x + math.sqrt(x * x + 1))
-
+#init new version
 def normalh(x, length, a, b, c):
     """Compute the normalized hyperbolic weight."""
     n = b * c
