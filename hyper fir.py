@@ -141,7 +141,7 @@ def main():
                                                                defaultextension=".wav",
                                                                filetypes=(("WAV files", "*.wav"), ("All files", "*.*")))
                     if output_file:
-                        process_audio_file(input_file, output_file, filter_length, a, b, c, window_type.get())
+                        process_audio_file(input_file, output_file, filter_length, b, c, window_type.get())
                         tk.messagebox.showinfo("Success", "The audio has been processed successfully.")
                     break
 
