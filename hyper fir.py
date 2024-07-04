@@ -41,27 +41,24 @@ def generate_filter_coefficients(length, b, c, window_type=None):
 
     return normalized_weights
 
-def normh_ma(source, length, b, c, window_type=None):
+def normh_ma(source, weights):
     """Apply a normalized hyperbolic moving average filter using generated coefficients."""
-    
-    # Use the generate_filter_coefficients function to get the weights
-    weights = generate_filter_coefficients(length, b, c, window_type)
     
     # Apply the convolution with the normalized weights
     filtered = np.convolve(source, weights, mode='same')
     return filtered
 
-def process_audio_file(input_file, output_file, filter_length, b, c, window_type=None):
+def process_audio_file(input_file, output_file, weights):
     """Read an audio file, apply the filter, and write the output to a new file."""
     data, samplerate = sf.read(input_file)
     if data.ndim > 1:
         filtered_channels = []
         for channel in range(data.shape[1]):
-            filtered_channel = normh_ma(data[:, channel], filter_length, b, c, window_type)
+            filtered_channel = normh_ma(data[:, channel], weights)
             filtered_channels.append(filtered_channel)
         filtered_data = np.column_stack(filtered_channels)
     else:
-        filtered_data = normh_ma(data, filter_length, b, c, window_type)
+        filtered_data = normh_ma(data, weights)
     
     sf.write(output_file, filtered_data, samplerate)
 
@@ -138,7 +135,7 @@ def main():
                                                                defaultextension=".wav",
                                                                filetypes=(("WAV files", "*.wav"), ("All files", "*.*")))
                     if output_file:
-                        process_audio_file(input_file, output_file, filter_length, b, c, window_type.get())
+                        process_audio_file(input_file, output_file, weights)
                         tk.messagebox.showinfo("Success", "The audio has been processed successfully.")
                     break
 
