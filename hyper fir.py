@@ -7,12 +7,15 @@ from tkinter.simpledialog import askinteger, askfloat
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
+def csch(x):
+    """Compute the hyperbolic cosecant of x."""
+    return 2 / (math.exp(x) - math.exp(-x))
 
 def normalh(x, length, b, c):
     """Compute the normalized hyperbolic weight."""
     n = b * c
     if x != 0:
-        return math.asinh((2 * b * x) / length) * math.csch((2 * x) / (length * c)) / n
+        return math.asinh((2 * b * x) / length) * csch((2 * x) / (length * c)) / n
     else:
         return 1  # The center coefficient
 
