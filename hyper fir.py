@@ -22,7 +22,7 @@ def normalh(x, length, b, c):
 def generate_filter_coefficients(length, b, c, window_type=None):
     """Generate filter coefficients for the given length and parameters, optionally applying a window function."""
     if length % 2 == 0:
-        length + 1
+        length += 1
     mid = length / 2
     weights = np.array([normalh(i - mid, length/2, b, c) for i in range(length)])
     sum_weights = np.sum(weights)
@@ -34,9 +34,6 @@ def generate_filter_coefficients(length, b, c, window_type=None):
             window = np.hamming(length)
         elif window_type == 'blackman':
             window = np.blackman(length)
-        elif window_type == 'kaiser':
-            beta = askfloat("Input", "Enter the beta value for Kaiser window:")
-            window = np.kaiser(length, beta)
         else:
             raise ValueError("Unsupported window type")
         # Applying the window to the filter coefficients
@@ -113,7 +110,7 @@ def main():
     root.title("Hyperbolic LPF")
     window_type = tk.StringVar(root)
     window_type.set("none")  # default value
-    window_options = ["none", "hamming", "blackman", "kaiser"]
+    window_options = ["none", "hamming", "blackman"]
     window_dropdown = tk.OptionMenu(root, window_type, *window_options)
     window_dropdown.pack()
 
