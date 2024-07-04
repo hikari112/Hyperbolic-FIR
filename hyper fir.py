@@ -22,9 +22,9 @@ def normalh(x, length, b, c):
 def generate_filter_coefficients(length, b, c, window_type=None):
     """Generate filter coefficients for the given length and parameters, optionally applying a window function."""
     if length % 2 == 0:
-        raise ValueError("Length must be odd.")
-    mid = length // 2
-    weights = np.array([normalh(i - mid, length, b, c) for i in range(length)])
+        length + 1
+    mid = length / 2
+    weights = np.array([normalh(i - mid, length/2, b, c) for i in range(length)])
     sum_weights = np.sum(weights)
     normalized_weights = weights / sum_weights
 
@@ -46,8 +46,6 @@ def generate_filter_coefficients(length, b, c, window_type=None):
 
 def normh_ma(source, length, b, c, window_type=None):
     """Apply a normalized hyperbolic moving average filter using generated coefficients."""
-    if length % 2 == 0:
-        raise ValueError("Length must be odd.")
     
     # Use the generate_filter_coefficients function to get the weights
     weights = generate_filter_coefficients(length, b, c, window_type)
@@ -127,11 +125,11 @@ def main():
                 _filter_length = askinteger("Input", "Enter FIR length:")
                 if _filter_length is None:
                     break
-                filter_length = _filter_length * 2 + 1
-                b = askfloat("Input", "Enter b value:")
+                filter_length = _filter_length
+                b = askfloat("Input", "Enter peak height value:")
                 if b is None:
                     break
-                c = askfloat("Input", "Enter c value:")
+                c = askfloat("Input", "Enter tail length value:")
                 if c is None:
                     break
                 weights = generate_filter_coefficients(filter_length, b, c, window_type.get())
